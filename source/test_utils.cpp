@@ -45,9 +45,11 @@ void test_samplegrid()
   cv::Size frame_width(10, 10);
   cv::Size frame_step(5, 5);
   cv::Mat coords;
-  sample_grid(win_width, frame_width, frame_step, coords);
+  sample_grid(win_width, frame_width, frame_step, coords, false, true);
+  std::cout<<"coords shape("<< coords.rows << ","<<coords.cols<<std::endl;
   for (int ir=0; ir < coords.rows; ir++) {
-    std::cout<<coords.at<int>(ir, 0)<<"  "<<coords.at<int>(ir, 1)<<std::endl;
+    //std::cout<<ir<<"  "<<coords.at<int>(ir, 0)<<","<<coords.at<int>(ir, 1)<<std::endl;
+    std::cout<<coords.at<int>(ir, 0)<<","<<coords.at<int>(ir, 1)<<","<<std::endl;
   }
 }
 //*/

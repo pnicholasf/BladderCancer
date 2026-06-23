@@ -10,20 +10,23 @@
 
 // -----------------------------------------------------------------------------
 void sample_grid(
-    cv::Size &window_size,
-    cv::Size &frame_size,
-    cv::Size &frame_step,
-    cv::Mat &coords,
-    bool exclude_border=false,
-    bool cb_grid=false,
+    cv::Size &window_size, cv::Size &frame_size, cv::Size &frame_step,
+    cv::Mat &coords, bool exclude_border=false, bool cb_grid=false,
     float cb_samp = 2.0
+    );
+
+// -----------------------------------------------------------------------------
+void sample_grid_wsi(
+    cv::Size &wsi_size, cv::Size &frame_size, cv::Size &frame_step,
+    cv::Size &patch_size, cv::Size &patch_step, cv::Mat& coords,
+    bool cb_grid=false, float cb_samp = 2.0
     );
 
 // -----------------------------------------------------------------------------
 template <typename T>
 std::vector<T> arange(T start, T stop, T step=1) {
     std::vector<T> result;
-    for (T i = start; i <= stop; i += step) {result.push_back(i);}
+    for (T i = start; i < stop; i += step) {result.push_back(i);}
     return result;
 }
 // -----------------------------------------------------------------------------
@@ -40,8 +43,8 @@ void meshgrid(
     auto nelems = nrows * ncols;
     row_coords.create(nrows, ncols);
     col_coords.create(nrows, ncols);
-    T* p_row = (T*) row_coords.data; //static_cast<T>(row_coords.data);
-    T* p_col = (T*) col_coords.data; //static_cast<T>(col_coords.data);
+    T* p_row = reinterpret_cast<T*>(row_coords.data); //(T*) row_coords.data;
+    T* p_col = reinterpret_cast<T*>(col_coords.data); //(T*) col_coords.data;
     for(T rr : row_range) {
         std::fill_n(p_row, ncols, rr);
         p_row += ncols;
