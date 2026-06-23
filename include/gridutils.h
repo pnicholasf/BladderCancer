@@ -16,7 +16,7 @@ void sample_grid(
     );
 
 // -----------------------------------------------------------------------------
-void sample_grid_wsi(
+void sample_wsi_grid(
     cv::Size &wsi_size, cv::Size &frame_size, cv::Size &frame_step,
     cv::Size &patch_size, cv::Size &patch_step, cv::Mat& coords,
     bool cb_grid=false, float cb_samp = 2.0

@@ -95,14 +95,23 @@ void sample_grid(
 }
 
 /*............................................................................*/
-void sample_grid_wsi(
+void sample_wsi_grid(
   cv::Size &wsi_size, cv::Size &frame_size, cv::Size &frame_step,
   cv::Size &patch_size, cv::Size &patch_step, cv::Mat& coords,
   const bool cb_grid, const float cb_samp
   )
 {
+  if (patch_step == cv::Size(-1,-1))
+    patch_step = cv::Size(
+      patch_size.width - patch_size.width/2,
+      patch_size.height-patch_size.height/2
+      );
+
   if (frame_step == cv::Size(-1,-1))
-    frame_step = cv::Size(frame_size.width-patch_size.width,frame_size.height-patch_size.height);
+    frame_step = cv::Size(
+      frame_size.width-patch_size.width,
+      frame_size.height-patch_size.height
+      );
 
   cv::Mat frame_coords, patch_coords;
   sample_grid(
@@ -116,15 +125,16 @@ void sample_grid_wsi(
 
   std::vector<int32_t>  vX, vY;
   for (int ii=0; ii< frame_coords.rows; ii++)
+  {
+    const int32_t xx = frame_coords.at<int32_t>(ii, 0);
+    const int32_t yy = frame_coords.at<int32_t>(ii, 1);
+    for (int jj=0; jj<patch_coords.rows; jj++)
     {
-      for (int jj=0; jj<patch_coords.rows; jj++)
-        {
-        int32_t xx = frame_coords.at<int32_t>(ii, 0);
-        int32_t yy = patch_coords.at<int32_t>(jj, 1);
-        if (xx+patch_size.width < wsi_size.width && yy+patch_size.height < wsi_size.height) {
-          vX.push_back(xx);
-          vY.push_back(yy);
-        }
+      if (xx + patch_size.width < wsi_size.width && yy + patch_size.height < wsi_size.height)
+      {
+        vX.push_back(xx + patch_coords.at<int32_t>(jj, 0));
+        vY.push_back(yy + patch_coords.at<int32_t>(jj, 1));
+      }
     }
   }
   coords.create(vX.size(),2, CV_32S);

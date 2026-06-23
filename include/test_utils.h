@@ -11,5 +11,6 @@
 void test_arange();
 void test_meshgrid();
 void test_samplegrid();
+void test_wsi_grid();
 
 #endif //TEST_UTILS_H

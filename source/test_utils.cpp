@@ -54,3 +54,27 @@ void test_samplegrid()
 }
 //*/
 // -----------------------------------------------------------------------------
+void test_wsi_grid()
+{
+  cv::Size wsi_size(1000,900);
+  cv::Size frame_size(250,250);
+  cv::Size frame_step(-1,-1);
+  cv::Size patch_size(50,50);
+  cv::Size patch_step(25,25);
+  cv::Mat coords;
+  bool cb_grid = true;
+
+  sample_wsi_grid(
+    wsi_size, frame_size,
+    frame_step, patch_size, patch_step,
+    coords, cb_grid, true
+    );
+
+  std::cout<<"coords shape("<< coords.rows << ","<<coords.cols<<std::endl;
+  for (int ir=0; ir < coords.rows; ir++) {
+    //std::cout<<ir<<"  "<<coords.at<int>(ir, 0)<<","<<coords.at<int>(ir, 1)<<std::endl;
+    std::cout<<coords.at<int>(ir, 0)<<","<<coords.at<int>(ir, 1)<<","<<std::endl;
+  }
+}
+
+// -----------------------------------------------------------------------------
