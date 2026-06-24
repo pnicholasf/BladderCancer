@@ -16,10 +16,18 @@ int main()
   std::cout<<"test sample grid ..."<<std::endl;
   test_samplegrid();
   std::cout<<"done"<<std::endl;
-  */
 
   std::cout<<"test sample wsi grid ..."<<std::endl;
   test_wsi_grid();
+  std::cout<<"done"<<std::endl;
+
+  std::cout<<"test mp_params..."<<std::endl;
+  test_mp_params();
+  std::cout<<"done"<<std::endl;
+*/
+
+  std::cout<<"test test_wsi_grid_pars..."<<std::endl;
+  test_wsi_grid_pars();
   std::cout<<"done"<<std::endl;
 
 }

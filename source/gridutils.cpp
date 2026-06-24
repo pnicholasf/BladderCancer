@@ -48,25 +48,6 @@ void sample_grid(
   cv::Mat_<int32_t> row_coords, col_coords;
   meshgrid<int32_t>(row_rng, col_rng, row_coords, col_coords);
 
-  //############################################################################
-  /*
-  std::cout<<"row coords"<<std::endl;
-  for (int ir=0; ir < row_coords.rows; ir++) {
-    for (int ic=0; ic < row_coords.cols; ic++) {
-      std::cout<<row_coords(ir, ic)<< "  ";
-    }
-    std::cout<<std::endl;
-  }
-  std::cout<<"col coords"<<std::endl;
-  for (int ir=0; ir < col_coords.rows; ir++) {
-    for (int ic=0; ic < col_coords.cols; ic++) {
-      std::cout<<col_coords(ir, ic)<< "  ";
-    }
-    std::cout<<std::endl;
-  }
-  */
-  //############################################################################
-
   cv::Mat rr, cc;
   if (cb_grid){
     int hfsw = fsw/2;
@@ -98,7 +79,8 @@ void sample_grid(
 void sample_wsi_grid(
   cv::Size &wsi_size, cv::Size &frame_size, cv::Size &frame_step,
   cv::Size &patch_size, cv::Size &patch_step, cv::Mat& coords,
-  const bool cb_grid, const float cb_samp
+  const bool cb_grid_wsi, const float cb_samp_wsi,
+  const bool cb_grid_patch, float cb_samp_patch
   )
 {
   if (patch_step == cv::Size(-1,-1))
@@ -116,11 +98,11 @@ void sample_wsi_grid(
   cv::Mat frame_coords, patch_coords;
   sample_grid(
     wsi_size, frame_size, frame_step, frame_coords,
-    false
+    false, cb_grid_wsi, cb_samp_wsi
     );
   sample_grid(
     frame_size, patch_size, patch_step,patch_coords,
-    true, cb_grid, cb_samp
+    true, cb_grid_patch, cb_samp_patch
     );
 
   std::vector<int32_t>  vX, vY;

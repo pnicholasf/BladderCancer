@@ -1,0 +1,24 @@
+#***********************************************************************************************************************
+# * Author: Franklin Pereira
+# * Thinprep Algorithm Group
+# * Hologic Inc
+# * 250 Campus Drive Marlborough, MA
+#***********************************************************************************************************************
+# WSI grid sampling parameters
+frame_size:
+  - 1000 #2000 #1500
+  - 1000 #2000 #1500
+frame_step:
+  - -1
+  - -1
+patch_size:
+  - 64
+  - 64
+patch_step:
+  - 32
+  - 32
+# checkerboard grid params
+cb_grid_wsi: true
+cb_samp_wsi: 2.0
+cb_grid_patch: true
+cb_samp_patch: 2.0
