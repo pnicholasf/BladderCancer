@@ -6,7 +6,7 @@
 
 #include "mp_params.h"
 
-// -----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------------
 void test_arange()
 {
   const std::vector<int> xx = arange<int> (0, 10, 2);
@@ -16,7 +16,7 @@ void test_arange()
   std::cout<<std::endl;
 }
 
-// -----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------------
 void test_meshgrid()
 {
   const std::vector<int> rr = arange<int> (0, 10, 2);
@@ -39,8 +39,7 @@ void test_meshgrid()
   }
 }
 
-// -----------------------------------------------------------------------------
-//*
+// ---------------------------------------------------------------------------------------------------------------------
 void test_samplegrid()
 {
   cv::Size win_width(100, 80);
@@ -54,8 +53,8 @@ void test_samplegrid()
     std::cout<<coords.at<int>(ir, 0)<<","<<coords.at<int>(ir, 1)<<","<<std::endl;
   }
 }
-//*/
-// -----------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------------------------------------------------
 void test_wsi_grid()
 {
   cv::Size wsi_size(5000,5000);
@@ -84,8 +83,8 @@ void test_wsi_grid()
 
   std::cout<<"coords shape("<< coords.rows << ","<<coords.cols<<std::endl;
 }
-// -----------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------------------------------------------------
 void test_mp_params() {
   const std::string configfilepath =
       "/home/franklin/code/cpp/BladderCancer/resources/mp_params.yaml";
@@ -99,7 +98,7 @@ void test_mp_params() {
   std::cout<<"cb_grid_patch: "<<pp.cb_grid_patch<<", "<<"cb_samp_patch: "<<pp.cb_samp_wsi<<std::endl;
 }
 
-// -----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------------
 void test_wsi_grid_pars() {
   cv::Size wsi_size(5000,5000);
   const std::string configfilepath =
@@ -121,4 +120,39 @@ void test_wsi_grid_pars() {
   std::cout<<"coords shape("<< coords.rows << ","<<coords.cols<<std::endl;
 }
 
-// -----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------------
+void generate_test_data(cv::Mat& odata, cv::Mat& mask, int32_t rows, int32_t cols, int32_t features)
+{
+  std::vector<cv::Point2d> vcpts{cv::Point2d(30,30), cv::Point2d(80,80)};
+  std::vector<int32_t> vrad{10,20};
+  const std::vector<int32_t> rrng = arange<int32_t>(0, rows);
+  const std::vector<int32_t> crng = arange<int32_t>(0, cols);
+  cv::Mat_<int32_t> rr, cc;
+  meshgrid(rrng, crng, rr, cc);
+  mask = cv::Mat::zeros(rows, cols, CV_32S);
+  cv::Mat ones = cv::Mat::ones(rows, cols, CV_32S);
+
+  int sz[3]{features, rows, cols};
+  odata = cv::Mat::zeros(3, sz, CV_32F);
+
+  cv::RNG rng;
+  for (size_t ii=0; ii < vrad.size(); ii += 1)
+  {
+    cv::Mat dr = rr - vcpts[ii].y;
+    dr = dr.mul(dr);
+    cv::Mat dc = cc - vcpts[ii].x;
+    dc = dc.mul(dc);
+    cv::Mat rad;
+    cv::sqrt(dr+dc, rad);
+    for (int32_t jj=0; jj < rows; jj += 1)
+      for (int32_t kk=0; kk < cols; kk += 1)
+        if (rad.at<int32_t>(jj, kk) > vrad[ii]) continue;
+        for (int32_t ll=0; ll < features; ll += 1)
+        {
+          mask.at<int32_t>(ll, jj) = 1;
+          odata.at<float>(ll, jj, kk) = static_cast<float>(rng.uniform(0.0, 1.0));
+        }
+  }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------

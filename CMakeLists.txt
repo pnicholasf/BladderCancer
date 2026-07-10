@@ -40,6 +40,8 @@ set(SOURCES
         ${CMAKE_SOURCE_DIR}/gridutils.cpp
         ${CMAKE_SOURCE_DIR}/test_utils.cpp
         source/mp_params.cpp
+        include/grid_dbscan.h
+        source/grid_dbscan.cpp
 )
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/bin/${CMAKE_BUILD_TYPE})

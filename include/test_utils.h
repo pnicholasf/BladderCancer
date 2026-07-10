@@ -15,5 +15,7 @@ void test_samplegrid();
 void test_wsi_grid();
 void test_mp_params();
 void test_wsi_grid_pars();
+void generate_test_data( cv::Mat& odata, cv::Mat& mask, int32_t rows=128, int32_t cols=128, int32_t features=8);
+void test_dbclust();
 
 #endif //TEST_UTILS_H
