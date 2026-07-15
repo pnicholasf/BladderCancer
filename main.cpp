@@ -24,10 +24,13 @@ int main()
   std::cout<<"test mp_params..."<<std::endl;
   test_mp_params();
   std::cout<<"done"<<std::endl;
-*/
 
   std::cout<<"test test_wsi_grid_pars..."<<std::endl;
   test_wsi_grid_pars();
   std::cout<<"done"<<std::endl;
+  */
 
+  std::cout<<" test test_dbclust..."<<std::endl;
+  test_dbclust();
+  std::cout<<"done"<<std::endl;
 }

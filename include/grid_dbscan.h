@@ -13,7 +13,7 @@ class GridDbClust
 public:
   explicit GridDbClust(
     float epsilon, int32_t minPts=1, int32_t radius=1, int32_t min_clust_size=-1,
-    cv::NormTypes norm_type=cv::NORM_L2, bool channel_first=true
+    bool channel_first=true, cv::NormTypes norm_type=cv::NORM_L2
     );
   void get_clusters(const cv::Mat & feature_data, cv::Mat & mask, cv::Mat & label);
   ~GridDbClust()=default;

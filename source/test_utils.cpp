@@ -4,8 +4,6 @@
 
 #include "test_utils.h"
 
-#include "mp_params.h"
-
 // ---------------------------------------------------------------------------------------------------------------------
 void test_arange()
 {
@@ -121,7 +119,11 @@ void test_wsi_grid_pars() {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-void generate_test_data(cv::Mat& odata, cv::Mat& mask, int32_t rows, int32_t cols, int32_t features)
+void generate_test_data(
+  cv::Mat& odata, cv::Mat& mask,
+  const int32_t rows, const int32_t cols, const int32_t features,
+  bool chan_first, const std::string& outdir
+  )
 {
   std::vector<cv::Point2d> vcpts{cv::Point2d(30,30), cv::Point2d(80,80)};
   std::vector<int32_t> vrad{10,20};
@@ -132,27 +134,88 @@ void generate_test_data(cv::Mat& odata, cv::Mat& mask, int32_t rows, int32_t col
   mask = cv::Mat::zeros(rows, cols, CV_32S);
   cv::Mat ones = cv::Mat::ones(rows, cols, CV_32S);
 
-  int sz[3]{features, rows, cols};
-  odata = cv::Mat::zeros(3, sz, CV_32F);
+  int sz[3];
+  if (chan_first)
+  {
+    sz[0] = features; sz[1] = rows; sz[2] = cols;
+  }
+  else
+  {
+    sz[0] = rows; sz[1] = cols; sz[2] = features;
+  }
 
+  odata = cv::Mat::zeros(3, sz, CV_32F);
   cv::RNG rng;
+  auto elems_per_slice = rows * cols;
   for (size_t ii=0; ii < vrad.size(); ii += 1)
   {
     cv::Mat dr = rr - vcpts[ii].y;
     dr = dr.mul(dr);
     cv::Mat dc = cc - vcpts[ii].x;
     dc = dc.mul(dc);
+    cv::Mat rad2 = dr + dc;
+    rad2.convertTo(rad2, CV_32F);
     cv::Mat rad;
-    cv::sqrt(dr+dc, rad);
-    for (int32_t jj=0; jj < rows; jj += 1)
-      for (int32_t kk=0; kk < cols; kk += 1)
-        if (rad.at<int32_t>(jj, kk) > vrad[ii]) continue;
+    cv::sqrt(rad2, rad);
+
+    auto mdata = reinterpret_cast<int32_t*>(mask.data);
+    auto fdata = reinterpret_cast<float*>(odata.data);
+    auto rdata = reinterpret_cast<float*>(rad.data);
+    for (int32_t jj=0; jj < rows; jj++)
+    {
+      for (int32_t kk=0; kk < cols; kk++)
+      {
+        int32_t lind_m = jj * cols + kk;
+        if (rdata[lind_m] > static_cast<float>(vrad[ii])) continue;
+        mdata[lind_m] = 1;
         for (int32_t ll=0; ll < features; ll += 1)
         {
-          mask.at<int32_t>(ll, jj) = 1;
-          odata.at<float>(ll, jj, kk) = static_cast<float>(rng.uniform(0.0, 1.0));
+          int32_t lind_f = elems_per_slice * ll + lind_m;
+          fdata[lind_f] = static_cast<float>(rng.uniform(0.0, 1.0));
         }
+      }
+    }
   }
+  if (!outdir.empty())
+  {
+    std::string outfilepath = outdir + "/" + "mask.bin";
+    std::ofstream fout(outfilepath, std::ios::binary);
+    fout.write((char*) mask.data, elems_per_slice * sizeof(int32_t));
+    fout.close();
+    std::cout<<"saved mask data to "<<outfilepath<<std::endl;
+
+    outfilepath = outdir + "/" + "features.bin";
+    fout = std::ofstream(outfilepath, std::ios::binary);
+    fout.write((char*)odata.data, elems_per_slice * features * sizeof(float));
+    fout.close();
+    std::cout<<"saved feature data to "<<outfilepath<<std::endl;
+  }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+void test_dbclust()
+{
+  cv::Mat feature_data, feature_mask, label;
+  constexpr int32_t nrows{128}, ncols{128}, nfeatures{8}, minPts{3}, rad{3}, min_clust_size{10};
+  constexpr float epsilon{1.0};
+  constexpr bool chan_first{true};
+  const std::string outfilepath = "/home/franklin/code/cpp/BladderCancer/test";
+
+  generate_test_data(feature_data, feature_mask, nrows, ncols, nfeatures, chan_first, outfilepath);
+  /*
+  cv::namedWindow("mask", cv::WINDOW_FREERATIO);
+  cv::imshow("mask", feature_mask);
+  cv::waitKey(0);
+  */
+
+  GridDbClust gdbc(epsilon, minPts, rad, min_clust_size, chan_first, cv::NORM_L2);
+  gdbc.get_clusters(feature_data, feature_mask, label);
+
+  /*
+  cv::namedWindow("label mask", cv::WINDOW_FREERATIO);
+  cv::imshow("label mask", label);
+  cv::waitKey(0);
+  */
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
