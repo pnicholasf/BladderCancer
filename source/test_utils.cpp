@@ -131,21 +131,14 @@ void generate_test_data(
   const std::vector<int32_t> crng = arange<int32_t>(0, cols);
   cv::Mat_<int32_t> rr, cc;
   meshgrid(rrng, crng, rr, cc);
-  mask = cv::Mat::zeros(rows, cols, CV_32S);
-  cv::Mat ones = cv::Mat::ones(rows, cols, CV_32S);
+  mask.create(rows, cols, CV_32S);
+  mask.setTo(0);
+  auto mdata = reinterpret_cast<int32_t*>(mask.data);
 
-  int sz[3];
-  if (chan_first)
-  {
-    sz[0] = features; sz[1] = rows; sz[2] = cols;
-  }
-  else
-  {
-    sz[0] = rows; sz[1] = cols; sz[2] = features;
-  }
-
-  odata = cv::Mat::zeros(3, sz, CV_32F);
-  cv::RNG rng;
+  int32_t sz[3] = {features, rows, cols};
+  odata.create(3, sz, CV_32F);
+  odata.setTo(0.0);
+  cv::RNG rng(cv::getTickCount());
   auto elems_per_slice = rows * cols;
   for (size_t ii=0; ii < vrad.size(); ii += 1)
   {
@@ -158,8 +151,6 @@ void generate_test_data(
     cv::Mat rad;
     cv::sqrt(rad2, rad);
 
-    auto mdata = reinterpret_cast<int32_t*>(mask.data);
-    auto fdata = reinterpret_cast<float*>(odata.data);
     auto rdata = reinterpret_cast<float*>(rad.data);
     for (int32_t jj=0; jj < rows; jj++)
     {
@@ -168,28 +159,47 @@ void generate_test_data(
         int32_t lind_m = jj * cols + kk;
         if (rdata[lind_m] > static_cast<float>(vrad[ii])) continue;
         mdata[lind_m] = 1;
+        /*
         for (int32_t ll=0; ll < features; ll += 1)
         {
           int32_t lind_f = elems_per_slice * ll + lind_m;
           fdata[lind_f] = static_cast<float>(rng.uniform(0.0, 1.0));
         }
+        */
       }
     }
   }
-  if (!outdir.empty())
-  {
-    std::string outfilepath = outdir + "/" + "mask.bin";
-    std::ofstream fout(outfilepath, std::ios::binary);
-    fout.write((char*) mask.data, elems_per_slice * sizeof(int32_t));
-    fout.close();
-    std::cout<<"saved mask data to "<<outfilepath<<std::endl;
 
-    outfilepath = outdir + "/" + "features.bin";
-    fout = std::ofstream(outfilepath, std::ios::binary);
-    fout.write((char*)odata.data, elems_per_slice * features * sizeof(float));
-    fout.close();
-    std::cout<<"saved feature data to "<<outfilepath<<std::endl;
+  rng.fill(odata, cv::RNG::UNIFORM, 0.0, 1.0);
+  auto fdata = reinterpret_cast<float*>(odata.data);
+  for (int32_t r=0; r < rows; r++)
+  {
+    for (int32_t c=0; c < cols; c++)
+    {
+      auto lind_m = r * cols + c;
+      if (mdata[lind_m] == 1) continue;
+      for (int32_t kk=0; kk < features; kk++)
+      {
+        int32_t lind_f = elems_per_slice * kk + lind_m;
+        fdata[lind_f] = 0.0;
+      }
+    }
   }
+
+  if (!outdir.empty())
+    {
+      std::string outfilepath = outdir + "/" + "mask.bin";
+      std::ofstream fout(outfilepath, std::ios::binary);
+      fout.write((char*) mask.data, elems_per_slice * sizeof(int32_t));
+      fout.close();
+      std::cout<<"saved mask data to "<<outfilepath<<std::endl;
+
+      outfilepath = outdir + "/" + "features.bin";
+      fout = std::ofstream(outfilepath, std::ios::binary);
+      fout.write((char*)odata.data, elems_per_slice * features * sizeof(float));
+      fout.close();
+      std::cout<<"saved feature data to "<<outfilepath<<std::endl;
+    }
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -199,17 +209,54 @@ void test_dbclust()
   constexpr int32_t nrows{128}, ncols{128}, nfeatures{8}, minPts{3}, rad{3}, min_clust_size{10};
   constexpr float epsilon{1.0};
   constexpr bool chan_first{true};
-  const std::string outfilepath = "/home/franklin/code/cpp/BladderCancer/test";
+  const std::string outdir = "/home/franklin/code/cpp/BladderCancer/test";
 
-  generate_test_data(feature_data, feature_mask, nrows, ncols, nfeatures, chan_first, outfilepath);
+  // read in data
+  std::string fpdata = "/home/franklin/code/cpp/BladderCancer/test/test_data.bin";
+  std::ifstream fin(fpdata, std::ios::binary);
+  size_t nbytes = nrows * ncols * nfeatures;
+  auto* fdata = new float[nbytes];
+  fin.read((char*) fdata, nbytes * sizeof(float));
+  fin.close();
+  constexpr int sz[3] = {nfeatures, nrows, ncols};
+  feature_data = cv::Mat(3, sz, CV_32F, (void*) fdata);
+
+  // read in mask
+  std::string fpmask = "/home/franklin/code/cpp/BladderCancer/test/test_mask.bin";
+  std::ifstream fin1(fpmask, std::ios::binary);
+  size_t nelems = nrows * ncols;
+  auto *mdata = new int32_t[nelems];
+  fin1.read((char*) fdata, nelems * sizeof(int32_t));
+  fin1.close();
+  feature_mask = cv::Mat(nrows, ncols, CV_32F, (void*) mdata);
+
+  //generate_test_data(feature_data, feature_mask, nrows, ncols, nfeatures, chan_first, outdir);
   /*
-  cv::namedWindow("mask", cv::WINDOW_FREERATIO);
-  cv::imshow("mask", feature_mask);
-  cv::waitKey(0);
+  for (int ii=0; ii<nfeatures; ii++)
+  {
+    std::vector<cv::Range> rng{cv::Range(ii, ii+1), cv::Range::all(), cv::Range::all()};
+    cv::Mat data = feature_data(rng);
+    std::string ofl = outdir + "/slice_" + std::to_string(ii) + ".bin";
+    std::ofstream fout(ofl, std::ios::binary);
+    fout.write((char*)data.data, nrows * ncols * sizeof(float));
+    fout.close();
+    //cv::namedWindow("fdata", cv::WINDOW_FREERATIO);
+    //cv::imshow("fdata", data);
+    //cv::waitKey(0);
+  }
   */
 
-  GridDbClust gdbc(epsilon, minPts, rad, min_clust_size, chan_first, cv::NORM_L2);
+  GridDbClust gdbc(epsilon, minPts, rad, min_clust_size, cv::NORM_L2);
   gdbc.get_clusters(feature_data, feature_mask, label);
+
+  std::string ofl = outdir + "/" + "label.bin";
+  std::ofstream fout(ofl, std::ios::binary);
+  fout.write((char*)label.data, nrows * ncols * sizeof(int32_t));
+  fout.close();
+  std::cout<<"saved label data to "<<ofl<<std::endl;
+
+  delete[] fdata;
+  delete[] mdata;
 
   /*
   cv::namedWindow("label mask", cv::WINDOW_FREERATIO);

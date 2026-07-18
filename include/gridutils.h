@@ -7,15 +7,49 @@
 
 #include <opencv2/opencv.hpp>
 #include <vector>
+#include <unordered_set>
 
-// -----------------------------------------------------------------------------
+// .....................................................................................................................
+template<typename T>
+void count_instances(cv::Mat &imat, std::vector<T> &values, std::vector<int32_t> &counts)
+{
+    counts.clear();
+    for (auto val : values)
+    {
+        cv::Mat indx = imat == val;
+        const auto *ptr = reinterpret_cast<bool *>(indx.data);
+        int32_t icount = 0;
+        for (int ii=0; ii<indx.total(); ii++)
+            if (ptr[ii]) icount++;
+        counts.push_back(icount);
+
+        //indx.convertTo(indx, CV_32S);
+        //int32_t count = static_cast<int32_t>(cv::sum(indx)[0]);
+        //counts.push_back(count);
+    }
+}
+
+// .....................................................................................................................
+template <typename T>
+void unique_values(cv::Mat &imat, std::vector<T>& uvalues)
+{
+    uvalues.clear();
+    std::unordered_set<T> uset;
+    auto *it = reinterpret_cast<T*>(imat.data);
+    for (size_t ii = 0; ii < imat.total(); ii++)
+        uset.insert(it[ii]);
+    for (auto it1 = uset.begin(); it1 != uset.end(); ++it1)
+        uvalues.push_back(*it1);
+}
+
+// .....................................................................................................................
 void sample_grid(
     cv::Size &window_size, cv::Size &frame_size, cv::Size &frame_step,
     cv::Mat &coords, bool exclude_border=false, bool cb_grid=false,
     float cb_samp = 2.0
     );
 
-// -----------------------------------------------------------------------------
+// .....................................................................................................................
 void sample_wsi_grid(
     cv::Size &wsi_size, cv::Size &frame_size, cv::Size &frame_step,
     cv::Size &patch_size, cv::Size &patch_step, cv::Mat& coords,
@@ -23,14 +57,15 @@ void sample_wsi_grid(
     bool cb_grid_patch=false, float cb_samp_patch = 2.0
     );
 
-// -----------------------------------------------------------------------------
+// .....................................................................................................................
 template <typename T>
 std::vector<T> arange(T start, T stop, T step=1) {
     std::vector<T> result;
     for (T i = start; i < stop; i += step) {result.push_back(i);}
     return result;
 }
-// -----------------------------------------------------------------------------
+
+// .....................................................................................................................
 template <typename T>
 void meshgrid(
     const std::vector<T>& row_range,
@@ -54,6 +89,6 @@ void meshgrid(
     }
 }
 
-// -----------------------------------------------------------------------------
+// .....................................................................................................................
 
 #endif //GRIDUTILS_H
