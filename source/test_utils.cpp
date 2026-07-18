@@ -203,6 +203,32 @@ void generate_test_data(
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
+void load_dbclust_data(int32_t nrows, int32_t ncols, int32_t nfeatures, cv::Mat& data, cv::Mat& mask)
+{
+  // read in data
+  std::string fpdata = "/home/franklin/code/cpp/BladderCancer/test/test_data.bin";
+  std::ifstream fin(fpdata, std::ios::binary);
+  long nelems = nrows * ncols * nfeatures;
+  //auto* fdata = new float[nelems];
+  std::vector<float> fdata(nelems);
+  fin.read((char*) fdata.data(), nelems * sizeof(float));
+  fin.close();
+  int sz[3] = {nfeatures, nrows, ncols};
+  data = cv::Mat(3, sz, CV_32F, (void*) fdata.data());
+
+  // read in mask
+  std::string fpmask = "/home/franklin/code/cpp/BladderCancer/test/test_mask.bin";
+  std::ifstream fin1(fpmask, std::ios::binary);
+  nelems = nrows * ncols;
+  std::vector<int32_t> mdata(nelems);
+  //auto *mdata = new int32_t[nelems];
+  fin1.read((char*) mdata.data(), nelems * sizeof(int32_t));
+  fin1.close();
+  mask = cv::Mat(nrows, ncols, CV_32F, (void*) mdata.data());
+}
+
+
+// ---------------------------------------------------------------------------------------------------------------------
 void test_dbclust()
 {
   cv::Mat feature_data, feature_mask, label;
@@ -211,26 +237,8 @@ void test_dbclust()
   constexpr bool chan_first{true};
   const std::string outdir = "/home/franklin/code/cpp/BladderCancer/test";
 
-  // read in data
-  std::string fpdata = "/home/franklin/code/cpp/BladderCancer/test/test_data.bin";
-  std::ifstream fin(fpdata, std::ios::binary);
-  size_t nbytes = nrows * ncols * nfeatures;
-  auto* fdata = new float[nbytes];
-  fin.read((char*) fdata, nbytes * sizeof(float));
-  fin.close();
-  constexpr int sz[3] = {nfeatures, nrows, ncols};
-  feature_data = cv::Mat(3, sz, CV_32F, (void*) fdata);
+  generate_test_data(feature_data, feature_mask, nrows, ncols, nfeatures, chan_first, outdir);
 
-  // read in mask
-  std::string fpmask = "/home/franklin/code/cpp/BladderCancer/test/test_mask.bin";
-  std::ifstream fin1(fpmask, std::ios::binary);
-  size_t nelems = nrows * ncols;
-  auto *mdata = new int32_t[nelems];
-  fin1.read((char*) fdata, nelems * sizeof(int32_t));
-  fin1.close();
-  feature_mask = cv::Mat(nrows, ncols, CV_32F, (void*) mdata);
-
-  //generate_test_data(feature_data, feature_mask, nrows, ncols, nfeatures, chan_first, outdir);
   /*
   for (int ii=0; ii<nfeatures; ii++)
   {
@@ -254,9 +262,6 @@ void test_dbclust()
   fout.write((char*)label.data, nrows * ncols * sizeof(int32_t));
   fout.close();
   std::cout<<"saved label data to "<<ofl<<std::endl;
-
-  delete[] fdata;
-  delete[] mdata;
 
   /*
   cv::namedWindow("label mask", cv::WINDOW_FREERATIO);

@@ -17,6 +17,7 @@ void test_samplegrid();
 void test_wsi_grid();
 void test_mp_params();
 void test_wsi_grid_pars();
+void load_dbclust_data(int32_t nrows, int32_t ncols, int32_t nfeatures, cv::Mat &data, cv::Mat& mask);
 void generate_test_data(
     cv::Mat& odata, cv::Mat& mask,
     int32_t rows=128, int32_t cols=128, int32_t features=8,

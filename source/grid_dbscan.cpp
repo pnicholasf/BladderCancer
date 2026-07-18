@@ -126,7 +126,7 @@ void GridDbClust::get_clusters(cv::Mat& feature_data, cv::Mat& mask, cv::Mat& la
                 l_count++;
                 l_ind = r1 * this->size.width + c1;
                 if (p_mask[l_ind] == 0) continue;
-                if (p_label[l_ind] != -1)
+                if (p_label[l_ind] == -1)
                 {
                     p_label[l_ind] = ccount;
                     continue;
@@ -134,7 +134,7 @@ void GridDbClust::get_clusters(cv::Mat& feature_data, cv::Mat& mask, cv::Mat& la
                 if (p_label[l_ind] !=0) continue;
                 p_label[l_ind] = ccount;
                 std::vector<cv::Point> nbrs1;
-                this->range_query(r, c, nbrs1);
+                this->range_query(r1, c1, nbrs1);
                 if (nbrs1.size() >= this->minPts)
                     for (cv::Point p : nbrs1)
                         seed_set.push_back(p);
