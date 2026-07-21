@@ -42,6 +42,8 @@ set(SOURCES
         source/mp_params.cpp
         include/grid_dbscan.h
         source/grid_dbscan.cpp
+        include/postprocess.h
+        source/postprocess.cpp
 )
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/bin/${CMAKE_BUILD_TYPE})

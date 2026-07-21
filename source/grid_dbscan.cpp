@@ -41,19 +41,7 @@ void GridDbClust::range_query(const int32_t row, const int32_t col, std::vector<
             };
             auto v2 = this->idata(rng2).reshape(1);
 
-            //********************************************************
-            for (int32_t ii = 0; ii < v1.total(); ii++)
-                std::cout<<v1.at<float>(ii) <<", ";
-            std::cout<<std::endl;
-
-            for (int32_t ii = 0; ii < v2.total(); ii++)
-                std::cout<<v2.at<float>(ii)<<", ";
-            std::cout<<std::endl;
-            //********************************************************
-
             double dd = cv::norm(v1, v2);
-            std::cout<<dd<<std::endl;
-            std::cout<<"...................."<<std::endl;
             if (dd <= this->epsilon)
                 points.emplace_back(cc, rr);
         }
