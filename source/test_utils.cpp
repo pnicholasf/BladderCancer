@@ -159,13 +159,6 @@ void generate_test_data(
         int32_t lind_m = jj * cols + kk;
         if (rdata[lind_m] > static_cast<float>(vrad[ii])) continue;
         mdata[lind_m] = 1;
-        /*
-        for (int32_t ll=0; ll < features; ll += 1)
-        {
-          int32_t lind_f = elems_per_slice * ll + lind_m;
-          fdata[lind_f] = static_cast<float>(rng.uniform(0.0, 1.0));
-        }
-        */
       }
     }
   }
